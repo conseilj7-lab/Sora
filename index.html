@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SORA">
+<meta name="theme-color" content="#1a1708">
+<title>SORA — Gestion Commerciale EI</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%238B6914'/%3E%3Cpath d='M90 28L97 58L130 50L108 73L125 110L90 95L55 110L72 73L50 50L83 58Z' fill='white' opacity='.95'/%3E%3Ccircle cx='90' cy='90' r='15' fill='%23C9A96E'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%238B6914'/%3E%3Cpath d='M16 4L18 12L26 10L21 16L24 24L16 20L8 24L11 16L6 10L14 12Z' fill='white'/%3E%3C/svg%3E">
+<style>
+:root{
+  --gold:#C9A96E;--gold-d:#8B6914;--gold-l:#FDF3DC;--gold-bg:#FFFBF0;
+  --bg:#F8F5F0;--white:#fff;--border:#F0EDE8;
+  --text:#1F2937;--muted:#6B7280;--light:#9CA3AF;
+  --ok:#065F46;--ok-bg:#F0FDF4;--err:#DC2626;--err-bg:#FEF2F2;
+  --blue:#1D4ED8;--blue-bg:#EFF6FF;--warn:#D97706;--warn-bg:#FFFBEB;
+  --black:#1a1708;--nav-h:62px;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;overscroll-behavior:none}
+input,select,textarea,button{font-family:inherit;-webkit-appearance:none;appearance:none}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+select{font-size:16px!important}
+input[type=date],input[type=number]{font-size:16px!important}
+
+/* ── LOCK SCREEN ── */
+#lock-screen{position:fixed;inset:0;background:var(--black);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;padding-top:calc(32px + var(--safe-t));padding-bottom:calc(32px + var(--safe-b));animation:fadeIn .3s}
+#lock-screen.hidden{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.lock-logo{width:76px;height:76px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:0 8px 32px rgba(201,169,110,.4)}
+.lock-logo svg{width:44px;height:44px}
+.lock-title{font-size:30px;font-weight:900;color:#fff;letter-spacing:4px;margin-bottom:4px}
+.lock-sub{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:3px;text-transform:uppercase;margin-bottom:36px}
+.lock-card{background:rgba(255,255,255,.05);border:1px solid rgba(201,169,110,.2);border-radius:20px;padding:28px 24px;width:320px;max-width:90vw}
+.lock-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);text-align:center;margin-bottom:14px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px;min-height:18px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(201,169,110,.35);background:transparent;transition:all .15s}
+.pin-dot.filled{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(201,169,110,.5)}
+.pin-dot.error{background:var(--err);border-color:var(--err);animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.pin-error{text-align:center;font-size:12px;color:var(--err);min-height:16px;margin-bottom:10px}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.pin-key{height:58px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(201,169,110,.15);color:#fff;font-size:22px;font-weight:300;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;user-select:none}
+.pin-key:active{transform:scale(.92);background:rgba(201,169,110,.25)}
+.pin-key.empty{cursor:default;background:transparent;border:none;pointer-events:none}
+.pin-key.del{font-size:20px}
+.pin-alt{text-align:center;font-size:12px;color:rgba(255,255,255,.3);margin-top:10px;cursor:pointer;transition:color .2s}
+.pin-alt:hover,.pin-alt:active{color:var(--gold)}
+.pin-attempts{text-align:center;font-size:11px;color:rgba(255,255,255,.3);margin-top:8px;min-height:16px}
+.lock-text-wrap{margin-bottom:16px}
+.lock-text-input{width:100%;padding:14px;background:rgba(255,255,255,.07);border:1px solid rgba(201,169,110,.25);border-radius:12px;color:#fff;font-size:16px;text-align:center;letter-spacing:2px;outline:none;transition:border-color .2s}
+.lock-text-input:focus{border-color:var(--gold)}
+.lock-text-input::placeholder{letter-spacing:0;color:rgba(255,255,255,.25);font-size:13px}
+.lock-text-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border:none;border-radius:12px;color:var(--black);font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:all .2s}
+.lock-text-btn:active{transform:scale(.97)}
+.lock-footer{position:absolute;bottom:calc(20px + var(--safe-b));font-size:10px;color:rgba(255,255,255,.18);letter-spacing:1.5px;text-transform:uppercase;text-align:center}
+
+/* ── APP LAYOUT ── */
+#app{height:100%;display:flex;flex-direction:column;padding-top:var(--safe-t)}
+.header{background:var(--white);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.header-logo{display:flex;align-items:center;gap:9px}
+.header-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center}
+.header-name{font-size:19px;font-weight:900;color:var(--gold-d);letter-spacing:2px}
+.header-sub{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.header-btns{display:flex;gap:4px}
+.hbtn{background:none;border:none;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--gold-d);transition:background .15s}
+.hbtn:active{background:var(--gold-bg)}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 14px calc(var(--nav-h) + var(--safe-b) + 14px);-webkit-overflow-scrolling:touch}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);box-shadow:0 -2px 12px rgba(0,0,0,.06);z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;cursor:pointer;padding:6px 2px;font-size:10px;font-weight:600;color:var(--light);letter-spacing:.3px;transition:color .2s}
+.nav-item.active{color:var(--gold-d)}
+.nav-icon{font-size:21px;line-height:1;transition:transform .2s}
+.nav-item.active .nav-icon{transform:scale(1.12)}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);display:none}
+.nav-item.active .nav-dot{display:block}
+
+/* ── MORE MENU ── */
+.more-overlay{position:fixed;inset:0;z-index:150;display:none}
+.more-overlay.open{display:block}
+.more-menu{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);right:8px;background:var(--white);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.18);border:1px solid var(--border);z-index:200;overflow:hidden;min-width:210px;display:none}
+.more-menu.open{display:block}
+.more-item{display:flex;align-items:center;gap:12px;padding:14px 18px;border:none;background:none;width:100%;text-align:left;cursor:pointer;font-size:15px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);transition:background .15s}
+.more-item:last-child{border-bottom:none}
+.more-item:active{background:var(--gold-bg)}
+.more-item .mi-icon{font-size:18px;width:24px;text-align:center}
+
+/* ── CARDS ── */
+.card{background:var(--white);border-radius:16px;border:1px solid var(--border);padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.04);margin-bottom:12px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:var(--white);border-radius:14px;border:1px solid var(--border);padding:14px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-d))}
+.stat-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--light)}
+.stat-val{font-size:22px;font-weight:800;margin-top:5px;line-height:1}
+.stat-sub{font-size:11px;color:var(--light);margin-top:4px}
+
+/* ── BUTTONS ── */
+.btn{border-radius:11px;font-weight:700;font-size:15px;padding:12px 20px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .15s}
+.btn:active{opacity:.75;transform:scale(.97)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--black)}
+.btn-out{background:var(--white);color:var(--gold-d);border:1.5px solid var(--gold)}
+.btn-danger{background:var(--err-bg);color:var(--err);border:1.5px solid #FECACA}
+.btn-ghost{background:#F3F4F6;color:var(--muted)}
+.btn-sm{font-size:13px;padding:8px 14px;border-radius:9px}
+.btn-full{width:100%}
+.btn-group{display:flex;gap:10px}
+.btn-group .btn{flex:1}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-devis{background:var(--blue-bg);color:var(--blue)}
+.b-facture{background:var(--ok-bg);color:var(--ok)}
+.b-avoir{background:#FFF7ED;color:#C2410C}
+.b-bc{background:#F5F3FF;color:#7C3AED}
+.b-brouillon{background:#F9FAFB;color:#6B7280}
+.b-valide{background:var(--ok-bg);color:var(--ok)}
+.b-envoye{background:var(--blue-bg);color:var(--blue)}
+.b-paye{background:#ECFDF5;color:#065F46}
+.b-annule{background:var(--err-bg);color:var(--err)}
+.b-partiel{background:var(--warn-bg);color:var(--warn)}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;align-items:center;gap:9px;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.search-bar input{border:none;outline:none;flex:1;font-size:15px;background:transparent;color:var(--text)}
+
+/* ── FORMS ── */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.flabel{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.flabel .req{color:var(--gold)}
+.finput,.fselect,.ftextarea{border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;font-size:15px;color:var(--text);background:var(--white);width:100%;outline:none;transition:border-color .15s}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--gold)}
+.ftextarea{resize:vertical;min-height:75px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ffull{grid-column:1/-1}
+
+/* ── SHEET (bottom drawer iOS) ── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-height:93vh;display:flex;flex-direction:column;padding-bottom:var(--safe-b);animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:#D1D5DB;margin:10px auto 0;flex-shrink:0}
+.sheet-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sheet-title{font-size:17px;font-weight:800}
+.sheet-close{background:#F3F4F6;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.sheet-body{flex:1;overflow-y:auto;padding:16px 20px;-webkit-overflow-scrolling:touch}
+.sheet-footer{padding:12px 20px;border-top:1px solid var(--border);flex-shrink:0}
+
+/* ── DOC LIST ── */
+.doc-item{display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border-radius:12px;background:var(--bg);margin-bottom:8px;gap:10px;cursor:pointer}
+.doc-item:active{opacity:.7}
+.doc-num{font-weight:700;font-size:14px;color:var(--gold-d)}
+.doc-client{font-size:12px;color:var(--muted);margin-top:2px}
+.doc-amount{font-weight:800;font-size:16px;text-align:right}
+.doc-avoir{color:var(--err)!important}
+
+/* ── CLIENT CARD ── */
+.cl-card{background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border);display:flex;align-items:center;gap:13px}
+.cl-avatar{width:44px;height:44px;border-radius:13px;flex-shrink:0;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:flex;align-items:center;justify-content:center;color:var(--black);font-weight:800;font-size:17px}
+.cl-info{flex:1;min-width:0}
+.cl-name{font-weight:700;font-size:15px}
+.cl-detail{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-actions{display:flex;gap:7px}
+
+/* ── ARTICLE ROW ── */
+.art-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.art-row:last-child{border-bottom:none}
+.art-name{font-weight:700;font-size:15px}
+.art-cat{font-size:11px;color:var(--muted)}
+.art-price{font-weight:800;font-size:16px;color:var(--ok)}
+
+/* ── TOTAUX ── */
+.totaux{background:var(--gold-bg);border-radius:14px;border:1px solid var(--border);padding:14px;margin-top:12px}
+.tot-row{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;color:var(--muted)}
+.tot-final{display:flex;justify-content:space-between;padding:12px 14px;border-radius:10px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--black);font-weight:800;font-size:18px;margin-top:8px}
+
+/* ── FILTER TABS ── */
+.filter-tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.filter-tabs::-webkit-scrollbar{display:none}
+.ftab{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s}
+.ftab.active{background:var(--gold-d);color:white;border-color:var(--gold-d)}
+
+/* ── FAB ── */
+.fab{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);right:16px;width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border:none;cursor:pointer;font-size:26px;box-shadow:0 4px 20px rgba(139,105,20,.45);display:flex;align-items:center;justify-content:center;color:var(--black);z-index:90;transition:transform .15s}
+.fab:active{transform:scale(.92)}
+
+/* ── CONFIRM ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:none;align-items:center;justify-content:center;padding:20px}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--white);border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-title{font-size:18px;font-weight:800;margin-bottom:8px}
+.confirm-msg{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 10px);left:14px;right:14px;z-index:500;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--black);color:#fff;border-radius:14px;padding:13px 16px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.35);animation:toastIn .3s cubic-bezier(.32,.72,0,1);border-left:3px solid var(--gold)}
+.toast.ok{border-left-color:var(--ok)}.toast.err{border-left-color:var(--err)}.toast.warn{border-left-color:var(--warn)}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;color:var(--light)}
+.empty-icon{font-size:52px;margin-bottom:12px}
+.empty-title{font-size:17px;font-weight:700;color:var(--muted);margin-bottom:6px}
+
+/* ── SEGMENT ── */
+.segment{display:flex;background:#F3F4F6;border-radius:11px;padding:3px;margin-bottom:14px}
+.seg-btn{flex:1;padding:8px;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);background:none;transition:all .2s}
+.seg-btn.active{background:var(--white);color:var(--gold-d);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+/* ── AUDIT ── */
+.audit-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.audit-row:last-child{border-bottom:none}
+.audit-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.audit-msg{font-size:13px;font-weight:600;color:var(--text)}
+.audit-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.audit-time{font-size:11px;color:var(--light);white-space:nowrap;flex-shrink:0}
+
+/* ── INFO BANNERS ── */
+.info-banner{background:var(--gold-bg);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--gold-d);margin-bottom:14px;line-height:1.5}
+.success-banner{background:var(--ok-bg);border:1px solid #BBF7D0;border-radius:12px;padding:11px 14px;font-size:13px;color:var(--ok);margin-bottom:14px}
+.warn-banner{background:var(--warn-bg);border:1px solid #FDE68A;border-radius:12px;padding:11px 14px;font-size:13px;color:var(--warn);margin-bottom:14px}
+
+/* ── PRINT DOC ── */
+.pdoc{font-family:Georgia,serif;color:var(--text)}
+.pdoc-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid var(--border)}
+.pdoc-brand{font-size:22px;font-weight:900;color:var(--gold-d);letter-spacing:3px}
+.pdoc-sub{font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.pdoc-company{font-size:12px;color:var(--muted);line-height:1.7}
+.pdoc-type{font-size:24px;font-weight:800;color:var(--gold-d)}
+.pdoc-num{font-size:13px;color:var(--muted);margin-top:4px}
+.pdoc-table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+.pdoc-table th{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--black);padding:8px 10px;text-align:right;font-size:11px;font-weight:700}
+.pdoc-table th:first-child{text-align:left}
+.pdoc-table td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-size:13px}
+.pdoc-table td:first-child{text-align:left}
+.pdoc-table tr:nth-child(even) td{background:#FAFAF8}
+</style>
+</head>
+<body>
+
+<!-- ══ LOCK SCREEN ══ -->
+<div id="lock-screen">
+  <div class="lock-logo">
+    <svg viewBox="0 0 50 50" fill="none"><path d="M25 6L28.5 18L41 14.5L33 24L39 37L25 31L11 37L17 24L9 14.5L21.5 18Z" fill="white" opacity=".95"/><circle cx="25" cy="25" r="6" fill="rgba(255,255,255,.7)"/></svg>
+  </div>
+  <div class="lock-title">SORA</div>
+  <div class="lock-sub">Entreprise Individuelle</div>
+
+  <div class="lock-card">
+    <div class="lock-label" id="lock-label">Code PIN</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+      <div class="pin-dot" id="pd4"></div><div class="pin-dot" id="pd5"></div>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-pad" id="pin-pad">
+      <div class="pin-key" onclick="pinKey('1')">1</div><div class="pin-key" onclick="pinKey('2')">2</div><div class="pin-key" onclick="pinKey('3')">3</div>
+      <div class="pin-key" onclick="pinKey('4')">4</div><div class="pin-key" onclick="pinKey('5')">5</div><div class="pin-key" onclick="pinKey('6')">6</div>
+      <div class="pin-key" onclick="pinKey('7')">7</div><div class="pin-key" onclick="pinKey('8')">8</div><div class="pin-key" onclick="pinKey('9')">9</div>
+      <div class="pin-key empty"></div><div class="pin-key" onclick="pinKey('0')">0</div><div class="pin-key del" onclick="pinDel()">⌫</div>
+    </div>
+    <div class="pin-alt" onclick="toggleLockMode()"><span id="lock-mode-lbl">Utiliser le mot de passe texte</span></div>
+    <div class="pin-attempts" id="pin-attempts"></div>
+  </div>
+  <div class="lock-footer">SORA · Données locales · Sécurisé SHA-256</div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+  <div class="header">
+    <div class="header-logo">
+      <div class="header-icon">
+        <svg width="20" height="20" viewBox="0 0 50 50" fill="none"><path d="M25 6L28.5 18L41 14.5L33 24L39 37L25 31L11 37L17 24L9 14.5L21.5 18Z" fill="white" opacity=".95"/><circle cx="25" cy="25" r="5" fill="rgba(255,255,255,.7)"/></svg>
+      </div>
+      <div>
+        <div class="header-name">SORA</div>
+        <div class="header-sub">Entreprise Individuelle</div>
+      </div>
+    </div>
+    <div class="header-btns">
+      <button class="hbtn" onclick="showPage('audit')" title="Piste d'audit">🔍</button>
+      <button class="hbtn" onclick="lockApp()" title="Verrouiller">🔒</button>
+    </div>
+  </div>
+
+  <div class="main" id="main-content"></div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+      <span class="nav-icon">📊</span><span>Accueil</span><span class="nav-dot"></span>
+    </button>
+    <button class="nav-item" data-page="documents" onclick="showPage('documents')">
+      <span class="nav-icon">📄</span><span>Documents</span><span class="nav-dot"></span>
+    </button>
+    <button class="nav-item" data-page="clients" onclick="showPage('clients')">
+      <span class="nav-icon">👥</span><span>Clients</span><span class="nav-dot"></span>
+    </button>
+    <button class="nav-item" data-page="articles" onclick="showPage('articles')">
+      <span class="nav-icon">🏷️</span><span>Articles</span><span class="nav-dot"></span>
+    </button>
+    <button class="nav-item" data-page="more" onclick="toggleMore()">
+      <span class="nav-icon">⋯</span><span>Plus</span><span class="nav-dot"></span>
+    </button>
+  </nav>
+
+  <div class="more-overlay" id="more-overlay" onclick="closeMore()"></div>
+  <div class="more-menu" id="more-menu">
+    <button class="more-item" onclick="closeMore();openNewDoc('devis')"><span class="mi-icon">📋</span> Nouveau Devis</button>
+    <button class="more-item" onclick="closeMore();openNewDoc('facture')"><span class="mi-icon">🧾</span> Nouvelle Facture</button>
+    <button class="more-item" onclick="closeMore();openNewDoc('avoir')"><span class="mi-icon">↩️</span> Nouvel Avoir</button>
+    <button class="more-item" onclick="closeMore();openNewDoc('bon-commande')"><span class="mi-icon">📦</span> Bon de Commande</button>
+    <button class="more-item" onclick="closeMore();showPage('parametres')"><span class="mi-icon">⚙️</span> Paramètres</button>
+    <button class="more-item" onclick="closeMore();exportData()"><span class="mi-icon">💾</span> Exporter backup</button>
+    <button class="more-item" onclick="closeMore();importData()"><span class="mi-icon">📥</span> Importer backup</button>
+    <button class="more-item" onclick="closeMore();lockApp()"><span class="mi-icon">🔒</span> Verrouiller</button>
+  </div>
+</div>
+
+<!-- ══ SHEETS ══ -->
+<div class="sheet-overlay" id="doc-sheet"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><span class="sheet-title" id="doc-sheet-title">Document</span><button class="sheet-close" onclick="closeSheet('doc-sheet')">×</button></div>
+  <div class="sheet-body" id="doc-sheet-body"></div>
+  <div class="sheet-footer" id="doc-sheet-footer"></div>
+</div></div>
+
+<div class="sheet-overlay" id="client-sheet"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><span class="sheet-title" id="client-sheet-title">Client</span><button class="sheet-close" onclick="closeSheet('client-sheet')">×</button></div>
+  <div class="sheet-body" id="client-sheet-body"></div>
+  <div class="sheet-footer"><div class="btn-group"><button class="btn btn-ghost" onclick="closeSheet('client-sheet')">Annuler</button><button class="btn btn-gold" onclick="saveClient()">💾 Enregistrer</button></div></div>
+</div></div>
+
+<div class="sheet-overlay" id="article-sheet"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><span class="sheet-title" id="article-sheet-title">Article</span><button class="sheet-close" onclick="closeSheet('article-sheet')">×</button></div>
+  <div class="sheet-body" id="article-sheet-body"></div>
+  <div class="sheet-footer"><div class="btn-group"><button class="btn btn-ghost" onclick="closeSheet('article-sheet')">Annuler</button><button class="btn btn-gold" onclick="saveArticle()">💾 Enregistrer</button></div></div>
+</div></div>
+
+<div class="sheet-overlay" id="view-sheet"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><span class="sheet-title" id="view-sheet-title">Document</span><button class="sheet-close" onclick="closeSheet('view-sheet')">×</button></div>
+  <div class="sheet-body" id="view-sheet-body"></div>
+  <div class="sheet-footer" id="view-sheet-footer"></div>
+</div></div>
+
+<div class="sheet-overlay" id="sec-sheet"><div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr"><span class="sheet-title">🔐 Sécurité</span><button class="sheet-close" onclick="closeSheet('sec-sheet')">×</button></div>
+  <div class="sheet-body" id="sec-sheet-body"></div>
+</div></div>
+
+<!-- ══ CONFIRM ══ -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title">Supprimer</div>
+    <div class="confirm-msg" id="confirm-msg">Confirmer ?</div>
+    <div class="btn-group"><button class="btn btn-ghost" onclick="confirmCancel()">Annuler</button><button class="btn btn-danger" id="confirm-ok">Confirmer</button></div>
+  </div>
+</div>
+
+<!-- ══ TOASTS ══ -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ══ FILE INPUT HIDDEN ══ -->
+<input type="file" id="file-import" accept=".json" style="display:none" onchange="doImport(event)">
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+//  SÉCURITÉ — PIN SHA-256 + SESSION + ANTI-BRUTE FORCE
+// ═══════════════════════════════════════════════════════
+
+// PIN par défaut : 1234 (hash SHA-256)
+const DEFAULT_PIN_HASH = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4';
+// Code récupération par défaut : SORA2024
+const DEFAULT_RECOVERY_HASH = 'a9ef30c07f33b2d38d0abf1d1dfb0a58b64e43462beee0e9f5bcd8f2b59a60d2';
+const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8h
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 5 * 60 * 1000; // 5 min
+
+let _pinBuf = '', _lockMode = 'pin', _sessionActive = false;
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getSecMeta() { try { return JSON.parse(localStorage.getItem('sora_sec') || '{}'); } catch { return {}; } }
+function setSecMeta(d) { try { localStorage.setItem('sora_sec', JSON.stringify(d)); } catch {} }
+function getSession() { try { return JSON.parse(sessionStorage.getItem('sora_sess') || '{}'); } catch { return {}; } }
+function setSession(d) { try { sessionStorage.setItem('sora_sess', JSON.stringify(d)); } catch {} }
+
+function isSessionValid() {
+  const s = getSession();
+  if (!s.unlocked || !s.expires) return false;
+  if (Date.now() > s.expires) { sessionStorage.removeItem('sora_sess'); return false; }
+  return true;
+}
+function createSession() { setSession({ unlocked: true, expires: Date.now() + SESSION_DURATION }); _sessionActive = true; }
+
+async function verifyPin(input) {
+  const sec = getSecMeta();
+  const stored = sec.pinHash || DEFAULT_PIN_HASH;
+  const recovery = sec.recoveryHash || DEFAULT_RECOVERY_HASH;
+  const h = await sha256(input);
+  if (h === recovery) return { ok: true, recovery: true };
+  return { ok: h === stored, recovery: false };
+}
+
+function getAttempts() {
+  const s = getSecMeta();
+  const lockUntil = s.lockUntil || 0;
+  if (Date.now() < lockUntil) return { locked: true, remaining: Math.ceil((lockUntil - Date.now()) / 1000), count: s.attempts || 0 };
+  return { locked: false, count: s.attempts || 0 };
+}
+function incAttempts() {
+  const s = getSecMeta();
+  s.attempts = (s.attempts || 0) + 1;
+  if (s.attempts >= MAX_ATTEMPTS) { s.lockUntil = Date.now() + LOCKOUT_DURATION; s.attempts = 0; }
+  setSecMeta(s);
+}
+function resetAttempts() { const s = getSecMeta(); s.attempts = 0; s.lockUntil = 0; setSecMeta(s); }
+
+function updateDots() {
+  document.querySelectorAll('.pin-dot').forEach((d, i) => {
+    d.classList.toggle('filled', i < _pinBuf.length);
+    d.classList.remove('error');
+  });
+}
+function showDotError() {
+  document.querySelectorAll('.pin-dot').forEach(d => d.classList.add('error'));
+  setTimeout(() => { _pinBuf = ''; updateDots(); }, 500);
+}
+function updateAttemptsUI() {
+  const att = getAttempts();
+  const el = document.getElementById('pin-attempts');
+  if (!el) return;
+  if (att.locked) {
+    el.textContent = '🔒 Bloqué temporairement';
+    el.style.color = 'var(--err)';
+    const t = setInterval(() => {
+      const a2 = getAttempts();
+      if (!a2.locked) { clearInterval(t); el.textContent = ''; el.style.color = ''; return; }
+      el.textContent = `🔒 Bloqué encore ${a2.remaining}s`;
+    }, 1000);
+  } else if (att.count > 0) {
+    el.textContent = `${att.count} tentative(s) échouée(s)`;
+    el.style.color = 'var(--warn)';
+  }
+}
+
+function pinKey(k) {
+  const att = getAttempts();
+  if (att.locked) { updateAttemptsUI(); return; }
+  if (_pinBuf.length >= 6) return;
+  _pinBuf += k;
+  updateDots();
+  const sec = getSecMeta();
+  const pinLen = sec.pinLength || 4;
+  if (_pinBuf.length >= pinLen && _pinBuf.length >= 4) setTimeout(submitPin, 150);
+}
+function pinDel() { if (_pinBuf.length > 0) { _pinBuf = _pinBuf.slice(0, -1); updateDots(); } }
+
+async function submitPin() {
+  const input = _pinBuf; _pinBuf = ''; updateDots();
+  const att = getAttempts();
+  if (att.locked) { document.getElementById('pin-error').textContent = `Bloqué. Attendez ${att.remaining}s.`; return; }
+  const result = await verifyPin(input);
+  if (result.ok) {
+    resetAttempts(); createSession(); unlockApp(result.recovery);
+  } else {
+    incAttempts(); showDotError();
+    const a2 = getAttempts();
+    document.getElementById('pin-error').textContent = a2.locked ? 'Trop de tentatives — bloqué 5 min' : `Code incorrect — ${MAX_ATTEMPTS - a2.count} essai(s)`;
+    updateAttemptsUI();
+  }
+}
+
+function toggleLockMode() {
+  _lockMode = _lockMode === 'pin' ? 'text' : 'pin';
+  _pinBuf = ''; updateDots();
+  document.getElementById('pin-error').textContent = '';
+  const pad = document.getElementById('pin-pad');
+  const dots = document.getElementById('pin-dots');
+  const lbl = document.getElementById('lock-mode-lbl');
+  if (_lockMode === 'text') {
+    pad.style.display = 'none'; dots.style.display = 'none';
+    document.getElementById('lock-label').textContent = 'Mot de passe';
+    lbl.textContent = 'Utiliser le code PIN';
+    let wrap = document.getElementById('lock-text-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div'); wrap.id = 'lock-text-wrap'; wrap.className = 'lock-text-wrap';
+      wrap.innerHTML = `<input type="password" class="lock-text-input" id="lock-text-input" placeholder="Votre mot de passe…" onkeydown="if(event.key==='Enter')submitTextPwd()">
+        <button class="lock-text-btn" onclick="submitTextPwd()">Déverrouiller →</button>`;
+      dots.parentNode.insertBefore(wrap, dots.nextSibling);
+      setTimeout(() => document.getElementById('lock-text-input')?.focus(), 100);
+    }
+    wrap.style.display = '';
+  } else {
+    pad.style.display = ''; dots.style.display = '';
+    document.getElementById('lock-label').textContent = 'Code PIN';
+    lbl.textContent = 'Utiliser le mot de passe texte';
+    const wrap = document.getElementById('lock-text-wrap');
+    if (wrap) wrap.style.display = 'none';
+  }
+}
+
+async function submitTextPwd() {
+  const input = document.getElementById('lock-text-input')?.value || '';
+  if (!input) { document.getElementById('pin-error').textContent = 'Saisissez votre mot de passe'; return; }
+  const att = getAttempts();
+  if (att.locked) { document.getElementById('pin-error').textContent = `Bloqué. Attendez ${att.remaining}s.`; return; }
+  const result = await verifyPin(input);
+  if (result.ok) { resetAttempts(); createSession(); unlockApp(result.recovery); }
+  else {
+    incAttempts();
+    const a2 = getAttempts();
+    document.getElementById('pin-error').textContent = a2.locked ? 'Trop de tentatives.' : `Incorrect — ${MAX_ATTEMPTS - a2.count} essai(s)`;
+    if (document.getElementById('lock-text-input')) document.getElementById('lock-text-input').value = '';
+    updateAttemptsUI();
+  }
+}
+
+function unlockApp(isRecovery = false) {
+  document.getElementById('lock-screen').classList.add('hidden');
+  document.getElementById('app').style.display = 'flex';
+  _sessionActive = true;
+  renderPage();
+  if (isRecovery) {
+    setTimeout(() => toast('⚠️ Connexion par code de récupération — Changez votre mot de passe dans Paramètres → Sécurité', 'warn', 6000), 600);
+  }
+}
+
+function lockApp() {
+  confirmAction('Verrouiller SORA ?', 'Vous devrez saisir votre code PIN à la prochaine utilisation.', () => {
+    sessionStorage.removeItem('sora_sess');
+    _sessionActive = false; _pinBuf = '';
+    document.getElementById('pin-error').textContent = '';
+    document.getElementById('pin-attempts').textContent = '';
+    if (_lockMode === 'text') toggleLockMode();
+    updateDots();
+    document.getElementById('lock-screen').classList.remove('hidden');
+    document.getElementById('app').style.display = 'none';
+  });
+}
+
+function checkLockOnStart() {
+  if (isSessionValid()) { _sessionActive = true; document.getElementById('lock-screen').classList.add('hidden'); document.getElementById('app').style.display = 'flex'; return true; }
+  document.getElementById('app').style.display = 'none';
+  updateAttemptsUI(); return false;
+}
+
+// ═══════════════════════════════════════════════════════
+//  DONNÉES — localStorage
+// ═══════════════════════════════════════════════════════
+
+const INITIAL_ARTICLES = [
+  { id: 1, nom: "Drap", prix: 40, unite: "pièce", categorie: "Literie" },
+  { id: 2, nom: "Foulard", prix: 10, unite: "pièce", categorie: "Accessoires" },
+  { id: 3, nom: "Rideaux", prix: 30, unite: "pièce", categorie: "Décoration" },
+  { id: 4, nom: "Bazin", prix: 50, unite: "mètre", categorie: "Tissu" },
+  { id: 5, nom: "Brodé", prix: 30, unite: "pièce", categorie: "Tissu" },
+  { id: 6, nom: "Robe Khaska", prix: 25, unite: "pièce", categorie: "Vêtement" },
+  { id: 7, nom: "Parfum", prix: 10, unite: "flacon", categorie: "Beauté" },
+];
+
+const DEFAULT_CONFIG = {
+  nom: "SORA", exploitant: "", adresse: "", codePostal: "", ville: "",
+  email: "", tel: "", siret: "", tvaIntra: "", regimeTVA: "franchise", tvaDef: 0,
+  conditions: "Paiement à réception de facture.", pfxDev: "DEV-", pfxFac: "FAC-"
+};
+
+function loadDB() {
+  try {
+    const r = localStorage.getItem('sora_db');
+    if (r) {
+      const d = JSON.parse(r);
+      if (!d.articles || !d.articles.length) d.articles = [...INITIAL_ARTICLES];
+      if (!d.config) d.config = { ...DEFAULT_CONFIG };
+      if (!d.audit) d.audit = [];
+      if (!d.counters) d.counters = { dv: 1, fac: 1 };
+      // Merge config keys
+      Object.keys(DEFAULT_CONFIG).forEach(k => { if (d.config[k] === undefined) d.config[k] = DEFAULT_CONFIG[k]; });
+      return d;
+    }
+  } catch (e) { console.warn('DB load error', e); }
+  return { docs: [], clients: [], articles: [...INITIAL_ARTICLES], config: { ...DEFAULT_CONFIG }, audit: [], counters: { dv: 1, fac: 1 } };
+}
+function saveDB() { try { localStorage.setItem('sora_db', JSON.stringify(db)); } catch { toast('Erreur sauvegarde', 'err'); } }
+let db = loadDB();
+
+// ═══════════════════════════════════════════════════════
+//  AUDIT LOG
+// ═══════════════════════════════════════════════════════
+
+function logAudit(msg, type = 'general', detail = '') {
+  if (!db.audit) db.audit = [];
+  db.audit.unshift({ id: Date.now() + Math.random(), msg, type, detail, date: new Date().toISOString(), user: db.config.exploitant || db.config.nom || 'SORA' });
+  if (db.audit.length > 500) db.audit.pop();
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+
+const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function genId(prefix) {
+  const now = new Date(), y = now.getFullYear(), m = String(now.getMonth() + 1).padStart(2, '0');
+  return `${prefix}${y}${m}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+function fmtDate(d) { if (!d) return '—'; try { const [y, mo, day] = d.slice(0, 10).split('-').map(Number); return new Date(y, mo - 1, day).toLocaleDateString('fr-FR'); } catch { return d; } }
+function fmt(n) { return Number(n || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+function isFranchise() { return db.config.regimeTVA === 'franchise'; }
+
+function calcDoc(doc) {
+  const lignes = doc.lignes || [];
+  const sousTotal = lignes.reduce((s, l) => { const b = (l.prixUnit || 0) * (l.qte || 0); return s + b - b * ((l.remise || 0) / 100); }, 0);
+  const remGlobVal = sousTotal * ((doc.remiseGlobale || 0) / 100);
+  const htNet = sousTotal - remGlobVal;
+  const tvaVal = htNet * ((doc.tva || 0) / 100);
+  return { sousTotal, remGlobVal, htNet, tvaVal, ttc: htNet + tvaVal };
+}
+function docTotal(doc) { const t = calcDoc(doc); return isFranchise() ? t.htNet : t.ttc; }
+
+function badge(type) {
+  const map = { devis: 'b-devis', facture: 'b-facture', avoir: 'b-avoir', 'bon-commande': 'b-bc', brouillon: 'b-brouillon', valide: 'b-valide', envoye: 'b-envoye', paye: 'b-paye', annule: 'b-annule', partiel: 'b-partiel' };
+  const labels = { devis: 'Devis', facture: 'Facture', avoir: 'Avoir', 'bon-commande': 'BC', brouillon: 'Brouillon', valide: 'Validé', envoye: 'Envoyé', paye: 'Payé', annule: 'Annulé', partiel: 'Partiel' };
+  return `<span class="badge ${map[type] || 'b-brouillon'}">${labels[type] || type}</span>`;
+}
+
+const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+
+let currentPage = 'dashboard', docTypeFilter = 'tous', searchValue = '';
+
+function showPage(page) {
+  currentPage = page; searchValue = '';
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page || (page === 'parametres' && b.dataset.page === 'more') || (page === 'audit' && b.dataset.page === 'more')));
+  renderPage();
+}
+
+function renderPage() {
+  const main = document.getElementById('main-content');
+  switch (currentPage) {
+    case 'dashboard': main.innerHTML = renderDashboard(); break;
+    case 'documents': main.innerHTML = renderDocuments(); break;
+    case 'clients': main.innerHTML = renderClients(); break;
+    case 'articles': main.innerHTML = renderArticles(); break;
+    case 'parametres': main.innerHTML = renderParametres(); break;
+    case 'audit': main.innerHTML = renderAudit(); break;
+    default: main.innerHTML = renderDashboard();
+  }
+  // Re-bind search
+  const s = document.getElementById('search-input');
+  if (s) { s.value = searchValue; s.addEventListener('input', () => { searchValue = s.value; renderPage(); }); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════
+
+function renderDashboard() {
+  const factures = db.docs.filter(d => d.type === 'facture');
+  const devis = db.docs.filter(d => d.type === 'devis');
+  const ca = factures.filter(d => d.statut === 'paye').reduce((s, d) => s + docTotal(d), 0);
+  const attente = factures.filter(d => ['valide', 'envoye'].includes(d.statut)).reduce((s, d) => s + docTotal(d), 0);
+  const recent = [...db.docs].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
+  const cfg = db.config;
+  const needsSetup = !cfg.exploitant || !cfg.siret;
+
+  return `
+    ${needsSetup ? `<div class="info-banner" onclick="showPage('parametres')" style="cursor:pointer">⚠️ <strong>Configuration requise :</strong> Renseignez vos informations EI (nom, SIRET…) pour des documents conformes. <span style="font-weight:700">Configurer →</span></div>` : ''}
+    <div style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:14px">Bonjour 👋<br><span style="color:var(--gold-d)">${esc(cfg.exploitant || cfg.nom || 'SORA')}</span></div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-lbl">Chiffre d'affaires</div><div class="stat-val" style="color:var(--ok)">${fmt(ca)}</div><div class="stat-sub">${factures.filter(d => d.statut === 'paye').length} facture(s) payée(s)</div></div>
+      <div class="stat"><div class="stat-lbl">En attente</div><div class="stat-val" style="color:var(--warn)">${fmt(attente)}</div><div class="stat-sub">${factures.filter(d => ['valide','envoye'].includes(d.statut)).length} facture(s)</div></div>
+      <div class="stat"><div class="stat-lbl">Devis</div><div class="stat-val" style="color:var(--blue)">${devis.filter(d => !['annule'].includes(d.statut)).length}</div><div class="stat-sub">${devis.length} au total</div></div>
+      <div class="stat"><div class="stat-lbl">Clients</div><div class="stat-val" style="color:#7C3AED">${db.clients.length}</div><div class="stat-sub">enregistrés</div></div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Accès rapide</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      ${[['📋','Devis','devis'],['🧾','Facture','facture'],['↩️','Avoir','avoir'],['📦','Bon de cmd','bon-commande']].map(([icon,label,type]) => `
+        <button onclick="openNewDoc('${type}')" style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:13px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px">
+          <span style="font-size:26px">${icon}</span>
+          <span style="font-size:11px;font-weight:700;color:var(--gold-d);text-transform:uppercase;letter-spacing:.5px">Nouveau</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text)">${label}</span>
+        </button>`).join('')}
+    </div>
+    ${recent.length ? `
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Documents récents</div>
+    <div class="card" style="padding:12px">
+      ${recent.map(d => {
+        const cl = db.clients.find(c => c.id === d.clientId);
+        return `<div class="doc-item" onclick="viewDoc(${d.id})">
+          <div>
+            <div class="doc-num">${esc(d.numero)}</div>
+            <div class="doc-client">${cl ? esc(cl.nom) : '—'} · ${fmtDate(d.date)}</div>
+            <div style="margin-top:4px;display:flex;gap:6px">${badge(d.type)} ${badge(d.statut)}</div>
+          </div>
+          <div class="doc-amount ${d.type === 'avoir' ? 'doc-avoir' : ''}">${fmt(docTotal(d))}</div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  DOCUMENTS
+// ═══════════════════════════════════════════════════════
+
+function renderDocuments() {
+  const q = searchValue.toLowerCase();
+  const filtered = db.docs.filter(d => {
+    const cl = db.clients.find(c => c.id === d.clientId);
+    return (docTypeFilter === 'tous' || d.type === docTypeFilter) &&
+      (!q || d.numero.toLowerCase().includes(q) || (cl?.nom || '').toLowerCase().includes(q));
+  }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return `
+    <div style="font-size:22px;font-weight:800;margin-bottom:14px">Documents</div>
+    <div class="search-bar"><span>🔍</span><input type="text" id="search-input" placeholder="N°, client…"></div>
+    <div class="filter-tabs">
+      ${[['tous','Tous'],['devis','Devis'],['facture','Factures'],['avoir','Avoirs'],['bon-commande','BC']].map(([id,lbl]) =>
+        `<button class="ftab ${docTypeFilter===id?'active':''}" onclick="setDocFilter('${id}')">${lbl}</button>`).join('')}
+    </div>
+    ${filtered.length === 0 ? `<div class="empty"><div class="empty-icon">📄</div><div class="empty-title">Aucun document</div><div style="font-size:14px;color:var(--light)">Créez votre premier document</div></div>` :
+      filtered.map(d => {
+        const cl = db.clients.find(c => c.id === d.clientId);
+        return `<div class="doc-item" onclick="viewDoc(${d.id})">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><span class="doc-num">${esc(d.numero)}</span>${badge(d.statut)}</div>
+            <div class="doc-client">${cl ? esc(cl.nom) : 'Sans client'} · ${fmtDate(d.date)}</div>
+            <div style="margin-top:4px">${badge(d.type)}</div>
+          </div>
+          <div class="doc-amount ${d.type==='avoir'?'doc-avoir':''}" style="flex-shrink:0">${fmt(docTotal(d))}</div>
+        </div>`;
+      }).join('')}
+    <button class="fab" onclick="openNewDoc(docTypeFilter==='tous'?'devis':docTypeFilter)">＋</button>
+  `;
+}
+
+function setDocFilter(f) { docTypeFilter = f; renderPage(); }
+
+// ═══════════════════════════════════════════════════════
+//  CLIENTS
+// ═══════════════════════════════════════════════════════
+
+function renderClients() {
+  const q = searchValue.toLowerCase();
+  const list = db.clients.filter(c => !q || c.nom.toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q));
+  return `
+    <div style="font-size:22px;font-weight:800;margin-bottom:14px">Clients <span style="font-size:14px;color:var(--muted);font-weight:600">(${list.length})</span></div>
+    <div class="search-bar"><span>🔍</span><input type="text" id="search-input" placeholder="Nom, email…"></div>
+    ${list.length === 0 ? `<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">Aucun client</div></div>` :
+      list.map(c => `
+        <div class="cl-card">
+          <div class="cl-avatar">${c.nom[0]?.toUpperCase() || '?'}</div>
+          <div class="cl-info">
+            <div class="cl-name">${esc(c.nom)}</div>
+            ${c.entreprise ? `<div class="cl-detail">${esc(c.entreprise)}</div>` : ''}
+            <div class="cl-detail">${[c.email, c.tel].filter(Boolean).map(esc).join(' · ')}</div>
+          </div>
+          <div class="cl-actions">
+            <button class="btn btn-sm btn-out" onclick="openEditClient(${c.id})">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="confirmDelete('client',${c.id})">🗑</button>
+          </div>
+        </div>`).join('')}
+    <button class="fab" onclick="openNewClient()">＋</button>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ARTICLES
+// ═══════════════════════════════════════════════════════
+
+function renderArticles() {
+  const q = searchValue.toLowerCase();
+  const cats = [...new Set(db.articles.map(a => a.categorie))];
+  return `
+    <div style="font-size:22px;font-weight:800;margin-bottom:14px">Articles & Tarifs</div>
+    <div class="search-bar"><span>🔍</span><input type="text" id="search-input" placeholder="Nom d'article…"></div>
+    ${cats.map(cat => {
+      const arts = db.articles.filter(a => a.categorie === cat && (!q || a.nom.toLowerCase().includes(q)));
+      if (!arts.length) return '';
+      return `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold-d);margin:14px 0 8px">${esc(cat)}</div>
+        <div class="card" style="padding:12px 16px">
+          ${arts.map(a => `<div class="art-row">
+            <div><div class="art-name">${esc(a.nom)}</div><div class="art-cat">${esc(a.unite)}</div></div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="art-price">${fmt(a.prix)}</div>
+              <button class="btn btn-sm btn-out" onclick="openEditArticle(${a.id})">✏️</button>
+              <button class="btn btn-sm btn-danger" onclick="confirmDelete('article',${a.id})">🗑</button>
+            </div>
+          </div>`).join('')}
+        </div>`;
+    }).join('')}
+    <button class="fab" onclick="openNewArticle()">＋</button>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  AUDIT
+// ═══════════════════════════════════════════════════════
+
+function renderAudit() {
+  const q = (searchValue || '').toLowerCase();
+  const list = (db.audit || []).filter(a => !q || a.msg.toLowerCase().includes(q) || (a.detail || '').toLowerCase().includes(q)).slice(0, 100);
+  const colors = { client: '#7C3AED', devis: '#1D4ED8', facture: '#065F46', avoir: '#C2410C', 'bon-commande': '#7C3AED', article: '#D97706', paiement: '#065F46', security: '#DC2626', settings: '#8B6914', general: '#6B7280', suppression: '#DC2626' };
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:22px;font-weight:800">Piste d'audit</div>
+      <button class="btn btn-sm btn-out" onclick="exportAudit()">📤 Export</button>
+    </div>
+    <div class="search-bar"><span>🔍</span><input type="text" id="search-input" placeholder="Rechercher…"></div>
+    <div class="card" style="padding:12px 16px">
+      ${list.length === 0 ? `<div style="text-align:center;padding:32px;color:var(--light)">Aucune activité enregistrée</div>` :
+        list.map(a => {
+          const col = colors[a.type] || '#6B7280';
+          const dt = new Date(a.date);
+          const timeStr = dt.toLocaleDateString('fr-FR') + ' ' + dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+          return `<div class="audit-row">
+            <div class="audit-dot" style="background:${col}"></div>
+            <div style="flex:1">
+              <div class="audit-msg">${esc(a.msg)}</div>
+              ${a.detail ? `<div class="audit-detail">${esc(a.detail)}</div>` : ''}
+            </div>
+            <div class="audit-time">${timeStr}</div>
+          </div>`;
+        }).join('')}
+    </div>
+    <div style="padding-bottom:20px;text-align:center;font-size:12px;color:var(--light)">${db.audit?.length || 0} entrée(s) au total</div>
+  `;
+}
+
+function exportAudit() {
+  const lines = ['Date,Type,Message,Détail,Utilisateur'];
+  (db.audit || []).forEach(a => {
+    lines.push([new Date(a.date).toLocaleString('fr-FR'), a.type, `"${a.msg}"`, `"${a.detail || ''}"`, a.user].join(','));
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = `sora-audit-${today()}.csv`; link.click();
+  toast('Audit exporté ✓', 'ok');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PARAMÈTRES
+// ═══════════════════════════════════════════════════════
+
+function renderParametres() {
+  const c = db.config;
+  const sec = getSecMeta();
+  return `
+    <div style="font-size:22px;font-weight:800;margin-bottom:16px">⚙️ Paramètres</div>
+    <div class="info-banner">🏪 <strong>Entreprise Individuelle (EI)</strong> — Le nom de l'exploitant est obligatoire sur les factures françaises.</div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-weight:800;font-size:16px;margin-bottom:14px">👤 Identité</div>
+      <div class="fg"><label class="flabel">Nom commercial</label><input class="finput" id="cfg-nom" value="${esc(c.nom || '')}" placeholder="SORA"></div>
+      <div class="fg"><label class="flabel">Nom & Prénom exploitant <span class="req">*</span></label><input class="finput" id="cfg-exploitant" value="${esc(c.exploitant || '')}" placeholder="Prénom Nom"></div>
+      <div class="fg"><label class="flabel">SIRET</label><input class="finput" id="cfg-siret" value="${esc(c.siret || '')}" placeholder="14 chiffres" maxlength="17"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-weight:800;font-size:16px;margin-bottom:14px">📍 Coordonnées</div>
+      <div class="fg"><label class="flabel">Adresse</label><input class="finput" id="cfg-adresse" value="${esc(c.adresse || '')}"></div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Code postal</label><input class="finput" id="cfg-cp" value="${esc(c.codePostal || '')}" placeholder="75001"></div>
+        <div class="fg"><label class="flabel">Ville</label><input class="finput" id="cfg-ville" value="${esc(c.ville || '')}"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Email</label><input class="finput" type="email" id="cfg-email" value="${esc(c.email || '')}"></div>
+        <div class="fg"><label class="flabel">Téléphone</label><input class="finput" type="tel" id="cfg-tel" value="${esc(c.tel || '')}"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-weight:800;font-size:16px;margin-bottom:14px">🧾 Régime TVA</div>
+      <div class="segment">
+        <button class="seg-btn ${c.regimeTVA === 'franchise' ? 'active' : ''}" onclick="setTvaRegime('franchise')">Franchise (art.293B)</button>
+        <button class="seg-btn ${c.regimeTVA === 'reel' ? 'active' : ''}" onclick="setTvaRegime('reel')">Régime réel</button>
+      </div>
+      ${c.regimeTVA === 'franchise' ?
+        `<div class="success-banner">✓ Mention ajoutée automatiquement : <em>"TVA non applicable — art. 293 B du CGI"</em></div>` :
+        `<div class="fg"><label class="flabel">N° TVA Intracommunautaire</label><input class="finput" id="cfg-tva-intra" value="${esc(c.tvaIntra || '')}" placeholder="FR00000000000"></div>
+         <div class="fg"><label class="flabel">Taux TVA par défaut</label><select class="fselect" id="cfg-tva-def">${[0,5.5,10,20].map(t => `<option value="${t}" ${c.tvaDef == t ? 'selected' : ''}>${t}%</option>`).join('')}</select></div>`}
+      <div class="fg" style="margin-top:12px"><label class="flabel">Conditions générales</label><textarea class="ftextarea" id="cfg-conditions" rows="3">${esc(c.conditions || '')}</textarea></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-weight:800;font-size:16px;margin-bottom:14px">🔐 Sécurité</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--bg);border-radius:12px;padding:13px;border:1px solid var(--border)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--light)">Durée session</div>
+          <div style="font-size:24px;font-weight:800;margin-top:6px">8 h</div>
+          <div style="font-size:11px;color:var(--light);margin-top:3px">Expiration auto</div>
+        </div>
+        <div style="background:var(--bg);border-radius:12px;padding:13px;border:1px solid var(--border)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--light)">Anti-brute force</div>
+          <div style="font-size:24px;font-weight:800;margin-top:6px">5 essais</div>
+          <div style="font-size:11px;color:var(--light);margin-top:3px">Blocage 5 min</div>
+        </div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:10px 13px;font-size:12px;color:var(--muted);margin-bottom:14px;border:1px solid var(--border)">🔐 Chiffrement SHA-256 · Stockage local uniquement · Aucune donnée transmise</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-out btn-sm" onclick="openSecSheet()">✏️ Changer le mot de passe</button>
+        <button class="btn btn-danger btn-sm" onclick="lockApp()">🔒 Verrouiller</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-weight:800;font-size:16px;margin-bottom:14px">💾 Sauvegarde & Restauration</div>
+      <div class="warn-banner">⚠️ Les données sont stockées sur cet appareil. Exportez régulièrement votre backup.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-out btn-sm" onclick="exportData()">📤 Exporter JSON</button>
+        <button class="btn btn-out btn-sm" onclick="importData()">📥 Importer JSON</button>
+      </div>
+    </div>
+
+    <button class="btn btn-gold btn-full" onclick="saveConfig()" style="font-size:16px;padding:15px;margin-bottom:40px">💾 Sauvegarder</button>
+  `;
+}
+
+function setTvaRegime(r) { db.config.regimeTVA = r; renderPage(); }
+
+function saveConfig() {
+  const c = db.config;
+  c.nom = val('cfg-nom') || 'SORA';
+  c.exploitant = val('cfg-exploitant');
+  c.siret = val('cfg-siret');
+  c.adresse = val('cfg-adresse');
+  c.codePostal = val('cfg-cp');
+  c.ville = val('cfg-ville');
+  c.email = val('cfg-email');
+  c.tel = val('cfg-tel');
+  c.tvaIntra = val('cfg-tva-intra') || '';
+  c.tvaDef = Number(val('cfg-tva-def')) || 0;
+  c.conditions = val('cfg-conditions');
+  logAudit('Paramètres modifiés', 'settings', `Exploitant: ${c.exploitant || '—'}, SIRET: ${c.siret || '—'}`);
+  saveDB();
+  toast('Paramètres sauvegardés ✓', 'ok');
+}
+
+// ── SECURITY SHEET ──
+function openSecSheet() {
+  document.getElementById('sec-sheet-body').innerHTML = `
+    <div class="warn-banner">💡 Code PIN par défaut : <strong>1234</strong> · Code de récupération par défaut : <strong>SORA2024</strong></div>
+    <div class="fg"><label class="flabel">Mot de passe actuel <span class="req">*</span></label><input type="password" class="finput" id="sec-cur" placeholder="Code PIN ou mot de passe actuel" autocomplete="current-password"></div>
+    <div class="fg"><label class="flabel">Nouveau mot de passe <span class="req">*</span></label><input type="password" class="finput" id="sec-new" placeholder="Min. 4 caractères" autocomplete="new-password"></div>
+    <div class="fg"><label class="flabel">Confirmer <span class="req">*</span></label><input type="password" class="finput" id="sec-conf" placeholder="Répéter" autocomplete="new-password"></div>
+    <div style="background:var(--blue-bg);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--blue);margin-bottom:16px">ℹ️ Un PIN à 4 chiffres s'utilise sur le pavé numérique. Un mot de passe texte s'utilise via "Mot de passe texte" sur l'écran de verrouillage.</div>
+    <div class="card" style="margin-bottom:14px;padding:14px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px">🔑 Code de récupération</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Le code de récupération par défaut est <strong>SORA2024</strong>. Conservez-le précieusement hors de l'application.</div>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="changePIN()">💾 Mettre à jour le mot de passe</button>
+  `;
+  openSheet('sec-sheet');
+}
+
+async function changePIN() {
+  const cur = val('sec-cur'), nw = val('sec-new'), conf = val('sec-conf');
+  if (!cur) { toast('Entrez votre mot de passe actuel', 'warn'); return; }
+  if (!nw || nw.length < 4) { toast('Nouveau mot de passe : 4 caractères minimum', 'warn'); return; }
+  if (nw !== conf) { toast('Les mots de passe ne correspondent pas', 'err'); return; }
+  const curHash = await sha256(cur);
+  const sec = getSecMeta();
+  const stored = sec.pinHash || DEFAULT_PIN_HASH;
+  const recovery = sec.recoveryHash || DEFAULT_RECOVERY_HASH;
+  if (curHash !== stored && curHash !== recovery) { toast('Mot de passe actuel incorrect', 'err'); return; }
+  const newHash = await sha256(nw);
+  sec.pinHash = newHash;
+  sec.pinLength = nw.length;
+  setSecMeta(sec);
+  logAudit('Mot de passe modifié', 'security', 'Hash SHA-256 mis à jour');
+  saveDB();
+  closeSheet('sec-sheet');
+  toast('Mot de passe mis à jour ✓', 'ok');
+}
+
+// ═══════════════════════════════════════════════════════
+//  DOC EDITOR
+// ═══════════════════════════════════════════════════════
+
+let currentDoc = null, editClientId = null, editArticleId = null;
+
+function openNewDoc(type) {
+  const prefixes = { devis: db.config.pfxDev || 'DEV-', facture: db.config.pfxFac || 'FAC-', avoir: 'AVO-', 'bon-commande': 'BC-' };
+  currentDoc = { type, numero: genId(prefixes[type] || 'DOC-'), date: today(), dateEcheance: '', clientId: '', lignes: [], tva: isFranchise() ? 0 : (db.config.tvaDef || 20), remiseGlobale: 0, notes: isFranchise() ? 'TVA non applicable — art. 293 B du CGI' : (db.config.conditions || ''), statut: 'brouillon', referencee: '' };
+  renderDocSheet();
+}
+
+function openEditDoc(id) {
+  const doc = db.docs.find(d => d.id === id);
+  if (!doc) return;
+  currentDoc = JSON.parse(JSON.stringify(doc));
+  renderDocSheet();
+}
+
+function renderDocSheet() {
+  const typeLabels = { devis: 'Devis', facture: 'Facture', avoir: 'Avoir', 'bon-commande': 'Bon de Commande' };
+  document.getElementById('doc-sheet-title').textContent = (currentDoc.id ? 'Modifier' : 'Nouveau') + ' ' + typeLabels[currentDoc.type];
+  buildDocBody();
+  openSheet('doc-sheet');
+}
+
+function buildDocBody() {
+  const doc = currentDoc, isAvoir = doc.type === 'avoir', franchise = isFranchise();
+  const t = calcDoc(doc);
+  const clOptions = db.clients.map(c => `<option value="${c.id}" ${doc.clientId == c.id ? 'selected' : ''}>${esc(c.nom)}</option>`).join('');
+  const artOptions = db.articles.map(a => `<option value="${a.id}">${esc(a.nom)} — ${fmt(a.prix)}</option>`).join('');
+
+  const lignesHTML = doc.lignes.map((l, i) => {
+    const tot = (l.prixUnit || 0) * (l.qte || 0) * (1 - (l.remise || 0) / 100);
+    return `<div style="background:var(--bg);border-radius:12px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+        <select class="fselect" style="flex:1;font-size:14px" onchange="selectArt(${i},this.value)">
+          <option value="">Choisir article…</option>${artOptions}<option value="libre">✏️ Saisie libre</option>
+        </select>
+        <button onclick="removeLigne(${i})" style="background:var(--err-bg);border:none;border-radius:8px;width:32px;height:32px;color:var(--err);font-size:18px;cursor:pointer;flex-shrink:0">×</button>
+      </div>
+      <input class="finput" style="margin-bottom:8px;font-size:14px" value="${esc(l.designation)}" placeholder="Désignation" oninput="updateLigne(${i},'designation',this.value)">
+      <div class="frow3">
+        <div><div class="flabel" style="font-size:10px;margin-bottom:3px">Qté</div><input class="finput" type="number" value="${l.qte}" min="0" step="0.01" oninput="updateLigne(${i},'qte',+this.value)" style="font-size:14px;text-align:right"></div>
+        <div><div class="flabel" style="font-size:10px;margin-bottom:3px">P.U. (€)</div><input class="finput" type="number" value="${l.prixUnit}" step="0.01" oninput="updateLigne(${i},'prixUnit',+this.value)" style="font-size:14px;text-align:right"></div>
+        <div><div class="flabel" style="font-size:10px;margin-bottom:3px">Rem. %</div><input class="finput" type="number" value="${l.remise}" min="0" max="100" step="0.5" oninput="updateLigne(${i},'remise',+this.value)" style="font-size:14px;text-align:right"></div>
+      </div>
+      <div style="text-align:right;font-weight:800;font-size:16px;margin-top:8px;color:${isAvoir ? 'var(--err)' : 'var(--ok)'}">${fmt(tot)}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('doc-sheet-body').innerHTML = `
+    <div class="frow">
+      <div class="fg"><label class="flabel">N° <span class="req">*</span></label><input class="finput" id="d-num" value="${esc(doc.numero)}" oninput="currentDoc.numero=this.value"></div>
+      <div class="fg"><label class="flabel">Date <span class="req">*</span></label><input class="finput" type="date" value="${doc.date}" oninput="currentDoc.date=this.value"></div>
+    </div>
+    ${doc.type === 'facture' || doc.type === 'avoir' ? `
+    <div class="frow">
+      <div class="fg"><label class="flabel">Échéance</label><input class="finput" type="date" value="${doc.dateEcheance||''}" oninput="currentDoc.dateEcheance=this.value"></div>
+      ${doc.type === 'avoir' ? `<div class="fg"><label class="flabel">Réf. facture</label><input class="finput" value="${esc(doc.referencee||'')}" placeholder="FAC-…" oninput="currentDoc.referencee=this.value"></div>` : '<div></div>'}
+    </div>` : ''}
+    <div class="fg"><label class="flabel">Client</label><select class="fselect" onchange="currentDoc.clientId=this.value"><option value="">— Sélectionner —</option>${clOptions}</select></div>
+    <div style="font-weight:700;font-size:15px;margin:14px 0 8px">Articles</div>
+    ${lignesHTML}
+    <button class="btn btn-out btn-full" onclick="addLigne()" style="margin-bottom:14px">➕ Ajouter un article</button>
+    <div class="frow">
+      ${!franchise ? `<div class="fg"><label class="flabel">TVA (%)</label><select class="fselect" onchange="currentDoc.tva=+this.value;buildDocBody()">${[0,5.5,10,20].map(x=>`<option value="${x}" ${doc.tva==x?'selected':''}>${x}%</option>`).join('')}</select></div>` : '<div></div>'}
+      <div class="fg"><label class="flabel">Remise globale (%)</label><input class="finput" type="number" value="${doc.remiseGlobale}" min="0" max="100" step="0.5" oninput="currentDoc.remiseGlobale=+this.value;buildDocBody()"></div>
+    </div>
+    <div class="totaux">
+      ${doc.remiseGlobale > 0 ? `<div class="tot-row"><span>Sous-total</span><span>${fmt(t.sousTotal)}</span></div><div class="tot-row" style="color:var(--err)"><span>Remise (${doc.remiseGlobale}%)</span><span>−${fmt(t.remGlobVal)}</span></div>` : `<div class="tot-row"><span>Sous-total</span><span>${fmt(t.sousTotal)}</span></div>`}
+      ${!franchise ? `<div class="tot-row"><span>Total HT</span><span>${fmt(t.htNet)}</span></div><div class="tot-row"><span>TVA ${doc.tva}%</span><span>${fmt(t.tvaVal)}</span></div>` : ''}
+      <div class="tot-final"><span>${franchise ? 'TOTAL NET' : 'TOTAL TTC'}</span><span>${fmt(franchise ? t.htNet : t.ttc)}</span></div>
+      ${franchise ? `<div style="text-align:right;font-size:11px;color:var(--muted);margin-top:5px;font-style:italic">TVA non applicable — art. 293 B du CGI</div>` : ''}
+    </div>
+    <div class="fg" style="margin-top:12px"><label class="flabel">Notes</label><textarea class="ftextarea" rows="3" oninput="currentDoc.notes=this.value">${esc(doc.notes||'')}</textarea></div>
+    <div class="fg"><label class="flabel">Statut</label>
+      <select class="fselect" onchange="currentDoc.statut=this.value">
+        ${['brouillon','valide','envoye',...(doc.type==='facture'?['paye','partiel']:[]),'annule'].map(s=>`<option value="${s}" ${doc.statut===s?'selected':''}>${{brouillon:'Brouillon',valide:'Validé',envoye:'Envoyé',paye:'Payé',partiel:'Partiel',annule:'Annulé'}[s]}</option>`).join('')}
+      </select>
+    </div>
+  `;
+  document.getElementById('doc-sheet-footer').innerHTML = `<div class="btn-group"><button class="btn btn-ghost" onclick="closeSheet('doc-sheet')">Annuler</button><button class="btn btn-gold" onclick="saveDoc()">💾 Enregistrer</button></div>`;
+}
+
+function addLigne() { currentDoc.lignes.push({ id: Date.now(), articleId: '', designation: '', qte: 1, prixUnit: 0, remise: 0, unite: 'pièce' }); buildDocBody(); }
+function removeLigne(i) { currentDoc.lignes.splice(i, 1); buildDocBody(); }
+function updateLigne(i, k, v) { currentDoc.lignes[i][k] = v; buildDocBody(); }
+function selectArt(i, id) {
+  if (id === 'libre') { currentDoc.lignes[i].articleId = ''; buildDocBody(); return; }
+  const a = db.articles.find(x => x.id == id);
+  if (a) currentDoc.lignes[i] = { ...currentDoc.lignes[i], articleId: a.id, designation: a.nom, prixUnit: currentDoc.type === 'avoir' ? -a.prix : a.prix, unite: a.unite };
+  buildDocBody();
+}
+
+function saveDoc() {
+  const doc = currentDoc;
+  if (!doc.numero || !doc.date) { toast('Numéro et date requis', 'err'); return; }
+  const typeLabels = { devis: 'Devis', facture: 'Facture', avoir: 'Avoir', 'bon-commande': 'Bon de commande' };
+  const cl = db.clients.find(c => c.id === doc.clientId);
+  if (doc.id) {
+    const idx = db.docs.findIndex(d => d.id === doc.id);
+    if (idx >= 0) db.docs[idx] = doc;
+    logAudit(`${typeLabels[doc.type]} modifié : ${doc.numero}`, doc.type, `Client: ${cl?.nom || '—'}, Montant: ${fmt(docTotal(doc))}`);
+    toast('Document mis à jour ✓', 'ok');
+  } else {
+    doc.id = Date.now();
+    db.docs.push(doc);
+    logAudit(`${typeLabels[doc.type]} créé : ${doc.numero}`, doc.type, `Client: ${cl?.nom || '—'}, Montant: ${fmt(docTotal(doc))}`);
+    toast('Document créé ✓', 'ok');
+  }
+  saveDB(); closeSheet('doc-sheet'); renderPage();
+}
+
+// ═══════════════════════════════════════════════════════
+//  VIEW DOC
+// ═══════════════════════════════════════════════════════
+
+function viewDoc(id) {
+  const doc = db.docs.find(d => d.id === id);
+  if (!doc) return;
+  const cl = db.clients.find(c => c.id === doc.clientId);
+  const t = calcDoc(doc), franchise = isFranchise(), cfg = db.config;
+  const isAvoir = doc.type === 'avoir';
+  const typeLabels = { devis: 'DEVIS', facture: 'FACTURE', avoir: 'AVOIR', 'bon-commande': 'BON DE COMMANDE' };
+
+  document.getElementById('view-sheet-title').textContent = doc.numero;
+  document.getElementById('view-sheet-body').innerHTML = `
+    <div class="pdoc">
+      <div class="pdoc-hdr">
+        <div>
+          <div class="pdoc-brand">SORA</div>
+          <div class="pdoc-sub">Entreprise Individuelle</div>
+          <div class="pdoc-company">
+            ${cfg.exploitant ? `<div><strong>${esc(cfg.exploitant)} — EI</strong></div>` : ''}
+            ${cfg.adresse ? `<div>${esc(cfg.adresse)}</div>` : ''}
+            ${cfg.codePostal || cfg.ville ? `<div>${esc([cfg.codePostal, cfg.ville].filter(Boolean).join(' '))}</div>` : ''}
+            ${cfg.email ? `<div>${esc(cfg.email)}</div>` : ''}
+            ${cfg.tel ? `<div>${esc(cfg.tel)}</div>` : ''}
+            ${cfg.siret ? `<div>SIRET : ${esc(cfg.siret)}</div>` : ''}
+            ${franchise ? `<div style="font-style:italic;color:var(--light)">TVA non applicable — art. 293 B du CGI</div>` : cfg.tvaIntra ? `<div>N° TVA : ${esc(cfg.tvaIntra)}</div>` : ''}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="pdoc-type" style="${isAvoir ? 'color:var(--err)' : ''}">${typeLabels[doc.type]}</div>
+          <div class="pdoc-num">N° ${esc(doc.numero)}</div>
+          <div class="pdoc-num">Date : ${fmtDate(doc.date)}</div>
+          ${doc.dateEcheance ? `<div class="pdoc-num">Échéance : ${fmtDate(doc.dateEcheance)}</div>` : ''}
+          ${doc.referencee ? `<div class="pdoc-num">Réf. : ${esc(doc.referencee)}</div>` : ''}
+          <div style="margin-top:8px">${badge(doc.statut)}</div>
+        </div>
+      </div>
+      ${cl ? `<div style="background:var(--gold-bg);border-radius:12px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border);border-left:3px solid var(--gold)">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--light);margin-bottom:4px">Client</div>
+        <div style="font-weight:700;font-size:15px">${esc(cl.nom)}</div>
+        ${cl.entreprise ? `<div style="font-size:12px;color:var(--muted)">${esc(cl.entreprise)}</div>` : ''}
+        ${cl.adresse ? `<div style="font-size:12px;color:var(--muted)">${esc(cl.adresse)}</div>` : ''}
+        <div style="font-size:12px;color:var(--muted)">${[cl.email, cl.tel].filter(Boolean).map(esc).join(' · ')}</div>
+      </div>` : ''}
+      <table class="pdoc-table">
+        <thead><tr><th>Désignation</th><th>Qté</th><th>P.U.</th><th>Rem.</th><th>Total</th></tr></thead>
+        <tbody>${(doc.lignes || []).map((l, i) => {
+          const tot = l.prixUnit * l.qte * (1 - (l.remise || 0) / 100);
+          return `<tr><td>${esc(l.designation)}</td><td>${l.qte} ${esc(l.unite || '')}</td><td>${fmt(l.prixUnit)}</td><td>${l.remise > 0 ? l.remise + '%' : '—'}</td><td style="font-weight:700;color:${isAvoir?'var(--err)':'var(--ok)'}">${fmt(tot)}</td></tr>`;
+        }).join('')}</tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end;margin:12px 0">
+        <div style="min-width:220px">
+          ${doc.remiseGlobale > 0 ? `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--muted)"><span>Sous-total</span><span>${fmt(t.sousTotal)}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--err)"><span>Remise (${doc.remiseGlobale}%)</span><span>−${fmt(t.remGlobVal)}</span></div>` : ''}
+          ${!franchise ? `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--muted)"><span>Total HT</span><span>${fmt(t.htNet)}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--muted)"><span>TVA ${doc.tva}%</span><span>${fmt(t.tvaVal)}</span></div>` : ''}
+          <div style="display:flex;justify-content:space-between;padding:11px 14px;background:${isAvoir?'var(--err)':'linear-gradient(135deg,var(--gold-d),var(--gold))'};color:var(--black);border-radius:10px;margin-top:8px;font-weight:800;font-size:17px">
+            <span>${franchise ? 'TOTAL NET' : 'TOTAL TTC'}</span><span>${fmt(franchise ? t.htNet : t.ttc)}</span>
+          </div>
+          ${franchise ? `<div style="text-align:right;font-size:11px;color:var(--light);margin-top:4px;font-style:italic">TVA non applicable — art. 293 B du CGI</div>` : ''}
+        </div>
+      </div>
+      ${doc.notes ? `<div style="border-top:1px solid var(--border);padding-top:12px;font-size:12px;color:var(--muted);line-height:1.6"><strong>Conditions :</strong> ${esc(doc.notes)}</div>` : ''}
+      <div style="text-align:center;margin-top:20px;font-size:11px;color:var(--gold-d);letter-spacing:1px">SORA — Entreprise Individuelle · Merci de votre confiance</div>
+    </div>
+  `;
+  document.getElementById('view-sheet-footer').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-out" onclick="openEditDoc(${doc.id});closeSheet('view-sheet')">✏️ Modifier</button>
+      <button class="btn btn-sm btn-danger" onclick="confirmDelete('doc',${doc.id});closeSheet('view-sheet')">🗑</button>
+      <button class="btn btn-sm btn-gold" style="flex:1" onclick="shareDoc(${doc.id})">📤 Partager</button>
+    </div>
+  `;
+  openSheet('view-sheet');
+}
+
+function shareDoc(id) {
+  const doc = db.docs.find(d => d.id === id); if (!doc) return;
+  const t = calcDoc(doc), franchise = isFranchise(), cl = db.clients.find(c => c.id === doc.clientId), cfg = db.config;
+  const typeLabels = { devis: 'Devis', facture: 'Facture', avoir: 'Avoir', 'bon-commande': 'Bon de commande' };
+  const text = [
+    '━━━━━━━━━━━━━━━━━━━', `✨ SORA — ${cfg.exploitant || cfg.nom || 'SORA'} (EI)`, '━━━━━━━━━━━━━━━━━━━',
+    `📄 ${typeLabels[doc.type]} N° ${doc.numero}`, `📅 ${fmtDate(doc.date)}`,
+    doc.dateEcheance ? `⏰ Échéance : ${fmtDate(doc.dateEcheance)}` : '',
+    cl ? `👤 ${cl.nom}` : '', '',
+    ...(doc.lignes || []).map(l => `• ${l.designation} — ${l.qte}×${fmt(l.prixUnit)} = ${fmt(l.prixUnit*l.qte*(1-(l.remise||0)/100))}`),
+    '', doc.remiseGlobale > 0 ? `Remise : −${fmt(t.remGlobVal)}` : '',
+    `💰 ${franchise ? 'TOTAL NET' : 'TOTAL TTC'} : ${fmt(franchise ? t.htNet : t.ttc)}`,
+    franchise ? '(TVA non applicable — art. 293 B du CGI)' : `(TVA ${doc.tva}% : ${fmt(t.tvaVal)})`,
+    '', doc.notes ? `📋 ${doc.notes}` : '', cfg.siret ? `SIRET : ${cfg.siret}` : '',
+  ].filter(l => l !== '').join('\n');
+  if (navigator.share) navigator.share({ title: `${typeLabels[doc.type]} ${doc.numero} — SORA`, text });
+  else navigator.clipboard?.writeText(text).then(() => toast('Copié dans le presse-papier ✓', 'ok')).catch(() => toast('Copie non disponible', 'warn'));
+}
+
+// ═══════════════════════════════════════════════════════
+//  CLIENT CRUD
+// ═══════════════════════════════════════════════════════
+
+function openNewClient() { editClientId = null; document.getElementById('client-sheet-title').textContent = 'Nouveau Client'; document.getElementById('client-sheet-body').innerHTML = clientForm({}); openSheet('client-sheet'); }
+function openEditClient(id) { editClientId = id; const c = db.clients.find(x => x.id === id); if (!c) return; document.getElementById('client-sheet-title').textContent = 'Modifier le Client'; document.getElementById('client-sheet-body').innerHTML = clientForm(c); openSheet('client-sheet'); }
+
+function clientForm(c) {
+  return `
+    <div class="fg"><label class="flabel">Nom / Prénom <span class="req">*</span></label><input class="finput" id="cl-nom" value="${esc(c.nom||'')}" placeholder="Prénom Nom"></div>
+    <div class="fg"><label class="flabel">Entreprise</label><input class="finput" id="cl-ent" value="${esc(c.entreprise||'')}" placeholder="Optionnel"></div>
+    <div class="frow">
+      <div class="fg"><label class="flabel">Email</label><input class="finput" type="email" id="cl-email" value="${esc(c.email||'')}" placeholder="email@..."></div>
+      <div class="fg"><label class="flabel">Téléphone</label><input class="finput" type="tel" id="cl-tel" value="${esc(c.tel||'')}" placeholder="+33..."></div>
+    </div>
+    <div class="fg"><label class="flabel">Adresse</label><textarea class="ftextarea" id="cl-adr" rows="2" placeholder="Adresse complète…">${esc(c.adresse||'')}</textarea></div>
+    <div class="frow">
+      <div class="fg"><label class="flabel">Code postal</label><input class="finput" id="cl-cp" value="${esc(c.codePostal||'')}"></div>
+      <div class="fg"><label class="flabel">Ville</label><input class="finput" id="cl-ville" value="${esc(c.ville||'')}"></div>
+    </div>
+    <div class="fg"><label class="flabel">SIRET client</label><input class="finput" id="cl-siret" value="${esc(c.siret||'')}"></div>
+    <div class="fg"><label class="flabel">Notes</label><textarea class="ftextarea" id="cl-notes" rows="2">${esc(c.notes||'')}</textarea></div>
+  `;
+}
+
+function saveClient() {
+  const nom = val('cl-nom');
+  if (!nom) { toast('Le nom est requis', 'err'); return; }
+  const cl = { nom, entreprise: val('cl-ent'), email: val('cl-email'), tel: val('cl-tel'), adresse: val('cl-adr'), codePostal: val('cl-cp'), ville: val('cl-ville'), siret: val('cl-siret'), notes: val('cl-notes') };
+  if (editClientId) {
+    const idx = db.clients.findIndex(c => c.id === editClientId);
+    if (idx >= 0) db.clients[idx] = { ...db.clients[idx], ...cl };
+    logAudit(`Client modifié : ${cl.nom}`, 'client', `ID:${editClientId}`);
+    toast('Client mis à jour ✓', 'ok');
+  } else {
+    cl.id = Date.now();
+    db.clients.push(cl);
+    logAudit(`Nouveau client : ${cl.nom}`, 'client', `Email:${cl.email||'—'}`);
+    toast('Client ajouté ✓', 'ok');
+  }
+  saveDB(); closeSheet('client-sheet'); renderPage();
+}
+
+// ═══════════════════════════════════════════════════════
+//  ARTICLE CRUD
+// ═══════════════════════════════════════════════════════
+
+function openNewArticle() { editArticleId = null; document.getElementById('article-sheet-title').textContent = 'Nouvel Article'; document.getElementById('article-sheet-body').innerHTML = articleForm({}); openSheet('article-sheet'); }
+function openEditArticle(id) { editArticleId = id; const a = db.articles.find(x => x.id === id); if (!a) return; document.getElementById('article-sheet-title').textContent = "Modifier l'Article"; document.getElementById('article-sheet-body').innerHTML = articleForm(a); openSheet('article-sheet'); }
+
+function articleForm(a) {
+  const cats = ['Literie','Accessoires','Décoration','Tissu','Vêtement','Beauté','Autre'];
+  return `
+    <div class="fg"><label class="flabel">Nom <span class="req">*</span></label><input class="finput" id="art-nom" value="${esc(a.nom||'')}" placeholder="Ex: Drap, Foulard…"></div>
+    <div class="frow">
+      <div class="fg"><label class="flabel">Prix (€) <span class="req">*</span></label><input class="finput" type="number" id="art-prix" value="${a.prix||''}" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="fg"><label class="flabel">Unité</label><input class="finput" id="art-unite" value="${esc(a.unite||'pièce')}" placeholder="pièce, mètre…"></div>
+    </div>
+    <div class="fg"><label class="flabel">Catégorie</label><select class="fselect" id="art-cat">${cats.map(c=>`<option value="${c}" ${(a.categorie||'Autre')===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flabel">Description</label><textarea class="ftextarea" id="art-desc" rows="2">${esc(a.description||'')}</textarea></div>
+  `;
+}
+
+function saveArticle() {
+  const nom = val('art-nom'), prix = +val('art-prix');
+  if (!nom || !prix) { toast('Nom et prix requis', 'err'); return; }
+  const a = { nom, prix, unite: val('art-unite') || 'pièce', categorie: val('art-cat') || 'Autre', description: val('art-desc') };
+  if (editArticleId) {
+    const idx = db.articles.findIndex(x => x.id === editArticleId);
+    if (idx >= 0) db.articles[idx] = { ...db.articles[idx], ...a };
+    logAudit(`Article modifié : ${a.nom}`, 'article', `Prix: ${fmt(a.prix)}`);
+    toast('Article mis à jour ✓', 'ok');
+  } else {
+    a.id = Date.now(); db.articles.push(a);
+    logAudit(`Article créé : ${a.nom}`, 'article', `Prix: ${fmt(a.prix)}`);
+    toast('Article ajouté ✓', 'ok');
+  }
+  saveDB(); closeSheet('article-sheet'); renderPage();
+}
+
+// ═══════════════════════════════════════════════════════
+//  DELETE + CONFIRM
+// ═══════════════════════════════════════════════════════
+
+let _confirmCb = null;
+
+function confirmDelete(type, id) {
+  const labels = { doc: 'ce document', client: 'ce client', article: 'cet article' };
+  confirmAction(`Supprimer ${labels[type] || 'cet élément'} ?`, 'Cette action est irréversible.', () => {
+    if (type === 'doc') { const d = db.docs.find(x => x.id === id); if (d) logAudit(`Document supprimé : ${d.numero}`, 'suppression'); db.docs = db.docs.filter(x => x.id !== id); toast('Document supprimé', 'err'); }
+    if (type === 'client') { const c = db.clients.find(x => x.id === id); if (c) logAudit(`Client supprimé : ${c.nom}`, 'suppression'); db.clients = db.clients.filter(x => x.id !== id); toast('Client supprimé', 'err'); }
+    if (type === 'article') { const a = db.articles.find(x => x.id === id); if (a) logAudit(`Article supprimé : ${a.nom}`, 'suppression'); db.articles = db.articles.filter(x => x.id !== id); toast('Article supprimé', 'err'); }
+    saveDB(); renderPage();
+  });
+}
+
+function confirmAction(title, msg, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  _confirmCb = cb;
+  document.getElementById('confirm-ok').onclick = () => { if (_confirmCb) { _confirmCb(); _confirmCb = null; } document.getElementById('confirm-overlay').classList.remove('open'); };
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function confirmCancel() { _confirmCb = null; document.getElementById('confirm-overlay').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT / IMPORT
+// ═══════════════════════════════════════════════════════
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `sora-backup-${today()}.json`; a.click();
+  logAudit('Export données JSON', 'settings', `${db.docs.length} docs, ${db.clients.length} clients`);
+  toast('Backup exporté ✓', 'ok');
+}
+
+function importData() { document.getElementById('file-import').click(); }
+function doImport(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.docs !== undefined && data.clients !== undefined) {
+        confirmAction('Remplacer toutes les données ?', 'Vos données actuelles seront remplacées par le backup importé.', () => {
+          db = data;
+          if (!db.audit) db.audit = [];
+          if (!db.config) db.config = { ...DEFAULT_CONFIG };
+          if (!db.articles || !db.articles.length) db.articles = [...INITIAL_ARTICLES];
+          logAudit('Import données JSON', 'settings', `Backup importé`);
+          saveDB(); renderPage(); toast('Données restaurées ✓', 'ok');
+        });
+      } else toast('Fichier backup invalide', 'err');
+    } catch { toast('Erreur lecture fichier', 'err'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  SHEETS + MORE MENU
+// ═══════════════════════════════════════════════════════
+
+function openSheet(id) { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+function toggleMore() { document.getElementById('more-menu').classList.toggle('open'); document.getElementById('more-overlay').classList.toggle('open'); }
+function closeMore() { document.getElementById('more-menu').classList.remove('open'); document.getElementById('more-overlay').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+
+function toast(msg, type = 'ok', duration = 3200) {
+  const icons = { ok: '✓', err: '✗', warn: '⚠️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${esc(msg)}</span>`;
+  const wrap = document.getElementById('toast-wrap');
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(10px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }, duration);
+}
+
+// ═══════════════════════════════════════════════════════
+//  SERVICE WORKER (offline)
+// ═══════════════════════════════════════════════════════
+
+if ('serviceWorker' in navigator) {
+  const sw = `self.addEventListener('install',e=>e.waitUntil(caches.open('sora-v2').then(c=>c.addAll([location.pathname]))));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{const clone=res.clone();caches.open('sora-v2').then(c=>c.put(e.request,clone));return res;}))));`;
+  const blob = new Blob([sw], { type: 'application/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+
+const alreadyUnlocked = checkLockOnStart();
+if (alreadyUnlocked) renderPage();
+
+</script>
+</body>
+</html>
